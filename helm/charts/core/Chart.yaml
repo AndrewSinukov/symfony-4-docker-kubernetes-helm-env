@@ -1,0 +1,8 @@
+apiVersion: v1
+name: core
+version: 0.1.0
+description: UAC core stage Enviroment.
+keywords:
+  - apache
+  - nginx
+  - uac

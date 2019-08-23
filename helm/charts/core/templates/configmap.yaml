@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+data:
+  env: {{ .Values.env | quote }}
+  debug: {{ .Values.debug | quote }}
+  cors-allow-origin: {{ .Values.corsAllowOrigin | quote }}
+  CURRENCY_CONVERTER_TOKEN: xxx
+  DATABASE_HOST: db
+  DATABASE_NAME: uac
+  DATABASE_PASSWORD: password
+  DATABASE_PORT: "3306"
+  DATABASE_USER: uac
+  FB_PUBLISHER_ID: "1"
+  FB_TOKEN: xxx
+  LTV_TOKEN: xxx
+  LTV_USER: ltv@example.com
+  MAINTENANCE: "false"
+  MARKETING_EXPENSE_DEBUG: "true"
+  PHP_ENABLE_XDEBUG: "1"
+  RABBIT_MQ_HOST: rabbit
+  RABBIT_MQ_PASSWORD: rabbitmq
+  RABBIT_MQ_PORT: "5672"
+  RABBIT_MQ_USER: rabbitmq
+  ROAS_REPORT_CC: '["user3@example.com", "user4@example.com"]'
+  ROAS_REPORT_TO: '["user1@example.com", "user2@example.com"]'
+  SAM_API_BASE_URL: https://sam-staging.gameloft.org/api-request/
+  SAM_API_TOKEN: me_api_client_token
+  SAM_DEBUG_EMAIL: debug@example.com
+  SECRET: "111"
+  XDEBUG_CONFIG: remote_host=10.63.9.118 remote_port=9005

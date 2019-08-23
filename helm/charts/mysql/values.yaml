@@ -1,0 +1,52 @@
+namespace: uac
+env: prod
+debug: 1
+
+busybox:
+  image: "busybox"
+  tag: "1.29.3"
+  imagePullPolicy: IfNotPresent
+
+mysql:
+  repository: mysql
+  tag: 5.7
+  pullPolicy: IfNotPresent
+  replicaCount: 1
+  user: symfony
+  password: root
+  mysqlRootPassword: root
+  database: symfony
+  port: 3306
+  ## Allow unauthenticated access, uncomment to enable
+  # allowEmptyPassword: true
+  persistence:
+    enabled: true
+    name: uac
+    accessMode: ReadWriteOnce
+    size: 4Gi
+    storageClass: "-"
+
+livenessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m
+
+initContainer:
+  resources:
+    requests:
+      memory: 10Mi
+      cpu: 10m

@@ -1,0 +1,35 @@
+namespace: 'uac'
+env: prod
+debug: '1'
+secret: ChangeMe
+corsAllowOrigin: http://uac.com
+
+php:
+  repository: andysi/personal-dev-environment-php
+  tag: latest
+  pullPolicy: Never
+  replicaCount: 1
+
+nginx:
+  repository: andysi/personal-dev-environment-nginx
+  tag: latest
+  pullPolicy: Never
+  replicaCount: 1
+
+ingress:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: 'true'
+  tls:
+    #     Secrets must be manually created in the namespace.
+    - secretName: symfony-4-docker-runtime-env-tls-cert
+      hosts:
+        - symfony-4-docker-runtime-env.tulik.info
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi

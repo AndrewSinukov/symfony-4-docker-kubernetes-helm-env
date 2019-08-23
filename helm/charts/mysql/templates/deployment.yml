@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "mysql.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "mysql.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: {{ .Values.mysql.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "mysql.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "mysql.fullname" . }}
+    spec:
+      initContainers:
+          - name: "remove-lost-found"
+            image: "{{ .Values.busybox.image}}:{{ .Values.busybox.tag }}"
+            imagePullPolicy: {{ .Values.busybox.imagePullPolicy | quote }}
+            resources:
+    {{ toYaml .Values.initContainer.resources | indent 10 }}
+            command:  ["rm", "-fr", "/var/lib/mysql/lost+found"]
+            volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+      containers:
+      - name: {{ template "mysql.fullname" . }}
+        image: {{ .Values.mysql.repository }}:{{ .Values.mysql.tag }}
+        ports:
+        - name: {{ template "mysql.fullname" . }}
+          containerPort: {{ .Values.mysql.port | default "3306" }}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        volumeMounts:
+        - mountPath: "/var/lib/mysql"
+          name: data
+        livenessProbe:
+            exec:
+              command:
+              - sh
+              - -c
+              - "mysqladmin ping -u root -p${MYSQL_ROOT_PASSWORD}"
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "mysqladmin ping -u root -p${MYSQL_ROOT_PASSWORD}"
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.readinessProbe.successThreshold }}
+          failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          env:
+            {{- if .Values.mysql.allowEmptyPassword }}
+            - name: MYSQL_ALLOW_EMPTY_PASSWORD
+              value: "true"
+            {{- end }}
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "mysql.secretName" . }}
+                  key: mysql-root-password
+                  {{- if .Values.mysql.allowEmptyPassword }}
+                  optional: true
+                  {{- end }}
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "mysql.secretName" . }}
+                  key: mysql-password
+                  {{- if or .Values.mysql.allowEmptyPassword (empty .Values.mysqlUser) }}
+                  optional: true
+                  {{- end }}
+            - name: MYSQL_USER
+              value: {{ default "" .Values.mysql.user | quote }}
+            - name: MYSQL_DATABASE
+              value: {{ default "" .Values.mysql.database | quote }}
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.name |  default (include "mysql.fullname" .) }}

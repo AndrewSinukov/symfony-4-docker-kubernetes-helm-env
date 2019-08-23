@@ -2,6 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: {{ template "name" . }}-nginx
+  namespace: {{ .Values.namespace }}
   labels:
     app: {{ template "name" . }}-nginx
     chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
